@@ -2,7 +2,7 @@
 #
 # EOF (end-of-file) token is used to indicate that
 # there is no more input left for lexical analysis
-INTEGER, PLUS, MINUS, EOF = 'INTEGER', 'PLUS', 'MINUS', 'EOF'
+INTEGER, PLUS, MINUS, MUL, DIV, EOF = 'INTEGER', 'PLUS', 'MINUS', 'MUL', 'DIV', 'EOF'
 
 class Token(object):
 	def __init__(self, type, value):
@@ -76,6 +76,15 @@ class Interpreter(object):
 			self.pos += 1
 			return token
 
+		if current_char == '*':
+			token = Token(MUL, current_char)
+			self.pos += 1
+			return token
+		if current_char == '/':
+			token = Token(DIV, current_char)
+			self.pos += 1
+			return token
+
 		if current_char == '-':
 			token = Token(MINUS, current_char)
 			self.pos += 1
@@ -101,7 +110,7 @@ class Interpreter(object):
 		# we expect the current token to be a single-digit integer
 		left = ''
 		
-		while self.current_token.type != PLUS and self.current_token.type != EOF and self.current_token.type != MINUS:
+		while self.current_token.type != PLUS and self.current_token.type != EOF and self.current_token.type != MINUS and self.current_token.type != DIV and self.current_token.type != MUL:
 			left = left + str(self.current_token.value)
 			self.eat(INTEGER)
 
@@ -109,11 +118,15 @@ class Interpreter(object):
 		op = self.current_token
 		if self.current_token.type == PLUS:
 			self.eat(PLUS)
-		else:
+		elif self.current_token.type == MINUS:
 			self.eat(MINUS)
+		elif self.current_token.type == MUL:
+			self.eat(MUL)
+		elif self.current_token.type == DIV:
+			self.eat(DIV)
 		# we expect the current token to be a single-digit integer
 		right = ''
-		while self.current_token.type != PLUS and self.current_token.type != EOF and self.current_token.type != MINUS:
+		while self.current_token.type != PLUS and self.current_token.type != EOF and self.current_token.type != MINUS and self.current_token.type != DIV and self.current_token.type != MUL:
 			right = right + str(self.current_token.value)
 			self.eat(INTEGER)
 
@@ -124,13 +137,18 @@ class Interpreter(object):
 		# has been successfully found and the method can just
 		# return the result of adding two integers, thus
 		# effectively interpreting client input
-
+		result = self.doOp(op, left, right)
+		return result
+	def doOp(self, op, left, right):
 		if op.type == PLUS:
 			result = int(left) + int(right)
-		else:
+		elif op.type == MINUS:
 			result = int(left) - int(right)
+		elif op.type == MUL:
+			result = int(left) * int(right)
+		elif op.type == DIV:
+			result = int(left) / int(right)
 		return result
-
 def main():
 	while True:
 		try:
